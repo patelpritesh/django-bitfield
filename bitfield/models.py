@@ -147,6 +147,30 @@ class BitField(BigIntegerField):
     #         return BitQuerySaveWrapper(self.model._meta.db_table, self.name, value)
     #     return super(BitField, self).get_db_prep_save(value, connection=connection)
 
+    def from_db_value(self, value, expression, connection, context):
+        return self.to_python(value)
+
+    def get_db_prep_lookup(self, lookup_type, value, connection, prepared=False):
+        if isinstance(getattr(value, 'expression', None), Bit):
+            value = value.expression
+        if isinstance(value, (BitHandler, Bit)):
+            if hasattr(self, 'class_lookups'):
+                # Django 1.7+
+                return [value.mask]
+            else:
+                return BitQueryLookupWrapper(self.model._meta.db_table, self.db_column or self.name, value)
+        return BigIntegerField.get_db_prep_lookup(self, lookup_type=lookup_type, value=value,
+                                                  connection=connection, prepared=prepared)
+
+    def get_prep_lookup(self, lookup_type, value):
+        if isinstance(getattr(value, 'expression', None), Bit):
+            value = value.expression
+        if isinstance(value, Bit):
+            if lookup_type in ('exact',):
+                return value
+            raise TypeError('Lookup type %r not supported with `Bit` type.' % lookup_type)
+        return BigIntegerField.get_prep_lookup(self, lookup_type, value)
+
     def to_python(self, value):
         if isinstance(value, Bit):
             value = value.mask
