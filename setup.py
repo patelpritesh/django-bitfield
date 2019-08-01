@@ -20,7 +20,7 @@ with open(os.path.join(this_directory, 'README.rst')) as f:
 
 setup(
     name='django-bitfield',
-    version=GetVersion(os.path.join(os.path.dirname(__file__), 'bitfield', '__init__.py')).VERSION,
+    version='1.9.3.2',
     author='Disqus',
     author_email='opensource@disqus.com',
     url='https://github.com/disqus/django-bitfield',
